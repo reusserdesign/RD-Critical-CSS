@@ -42,33 +42,6 @@ class Rd_critical_css
 			}
 		}
 	}
-
-	/**
-	* Plugin Usage
-	*/
-	
-	// This function describes how the plugin is used.
-	//  Make sure and use output buffering
-	
-	public static function usage()
-	{
-		ob_start(); 
-?>
-
-Invoke the {exp:rd_critical_css} tag with a file parameter that points to your critical css file, i.e.
-
-{exp:rd_critical_css file='path/to/critical.css'}
-
-Critical CSS will inject the contents of your critical css file into the head so that above-the-fold content will be styled without blocking the rendering of the page.
-
-Recommended to use in conjunction with loadCSS to load stylesheets asynchronously: https://github.com/filamentgroup/loadCSS
-
-<?php
-		$buffer = ob_get_contents();
-		ob_end_clean();
-
-		return $buffer;
-	}
 	// END
 
 }

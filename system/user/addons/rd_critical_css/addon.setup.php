@@ -6,7 +6,7 @@ return array(
 	'docs_url'			=> 'https://github.com/reusserdesign/RDCriticalCSS',
 	'name'        		=> 'RD Critical CSS',
 	'description' 		=> 'Inlines the contents of the specified css file into the head to prevent render-blocking. Adds compressed loadCSS and cssrelpreload scripts v1.2.0 (https://github.com/filamentgroup/loadCSS) as a rel=preload polyfill.',
-	'version'     		=> '3.0.3',
+	'version'     		=> '3.0.4',
 	'namespace'   		=> 'RDCriticalCSS',
-	'settings_exist'	=> TRUE
+	'settings_exist'	=> FALSE
 );

@@ -2,7 +2,7 @@
 
 /**
  * RD Critical CSS
- * 
+ *
  * @package		ExpressionEngine
  * @category	Plugin
  * @author		Jarrod D Nix, Reusser Design
@@ -16,7 +16,7 @@ class Rd_critical_css
 
 	public function __construct()
 	{
-	
+
 		if (version_compare(APP_VER, '3', '>='))
 		{
 			ob_start();
@@ -28,17 +28,24 @@ class Rd_critical_css
 			$buffer = ob_get_contents();
 			ob_end_clean();
 
+			$this->return_data = $buffer;
+
 			$file = ee()->TMPL->fetch_param('file') ? ee()->TMPL->fetch_param('file') : FALSE;
-	
+
 			if ($file && file_exists($_SERVER['DOCUMENT_ROOT'].$file))
-			{	
-				$return = file_get_contents($_SERVER['DOCUMENT_ROOT'].$file);
-				
-				// Remove any source map comments, i.e. /*# sourceMappingURL=critical.css.map */
-				$return = preg_replace("(\n\/\*\#.*\*\/)", "", $return);
-				
-				$this->return_data = "<style>" . $return . "</style>" . $buffer;
-			
+			{
+				$time = filemtime($_SERVER['DOCUMENT_ROOT'].$file);
+				if(!isset($_COOKIE["cssEmbedded"]) || $_COOKIE["cssEmbedded"] < $time)
+				{
+					setcookie("cssEmbedded", time(), time()+60*60*24*365, "/");
+
+					$return = file_get_contents($_SERVER['DOCUMENT_ROOT'].$file);
+
+					// Remove any source map comments, i.e. /*# sourceMappingURL=critical.css.map */
+					$return = preg_replace("(\n\/\*\#.*\*\/)", "", $return);
+
+					$this->return_data = "<style>" . $return . "</style>" . $buffer;
+				}
 			}
 		}
 	}

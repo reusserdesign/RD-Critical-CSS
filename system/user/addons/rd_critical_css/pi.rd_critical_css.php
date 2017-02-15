@@ -11,6 +11,7 @@
 
 class Rd_critical_css
 {
+	public $loadCSS = '<script>!function(w){"use strict";var loadCSS=function(href,before,media){function ready(cb){return doc.body?cb():void setTimeout(function(){ready(cb)})}function loadCB(){ss.addEventListener&&ss.removeEventListener("load",loadCB),ss.media=media||"all"}var ref,doc=w.document,ss=doc.createElement("link");if(before)ref=before;else{var refs=(doc.body||doc.getElementsByTagName("head")[0]).childNodes;ref=refs[refs.length-1]}var sheets=doc.styleSheets;ss.rel="stylesheet",ss.href=href,ss.media="only x",ready(function(){ref.parentNode.insertBefore(ss,before?ref:ref.nextSibling)});var onloadcssdefined=function(cb){for(var resolvedHref=ss.href,i=sheets.length;i--;)if(sheets[i].href===resolvedHref)return cb();setTimeout(function(){onloadcssdefined(cb)})};return ss.addEventListener&&ss.addEventListener("load",loadCB),ss.onloadcssdefined=onloadcssdefined,onloadcssdefined(loadCB),ss};"undefined"!=typeof exports?exports.loadCSS=loadCSS:w.loadCSS=loadCSS}("undefined"!=typeof global?global:this),function(w){if(w.loadCSS){var rp=loadCSS.relpreload={};if(rp.support=function(){try{return w.document.createElement("link").relList.supports("preload")}catch(e){return!1}},rp.poly=function(){for(var links=w.document.getElementsByTagName("link"),i=0;i<links.length;i++){var link=links[i];"preload"===link.rel&&"style"===link.getAttribute("as")&&(w.loadCSS(link.href,link),link.rel=null)}},!rp.support()){rp.poly();var run=w.setInterval(rp.poly,300);w.addEventListener&&w.addEventListener("load",function(){w.clearInterval(run)}),w.attachEvent&&w.attachEvent("onload",function(){w.clearInterval(run)})}}}(this);</script>';
 
 	public $return_data  = "";
 
@@ -19,40 +20,79 @@ class Rd_critical_css
 
 		if (version_compare(APP_VER, '3', '>='))
 		{
-			ob_start();
-?>
 
-<script>!function(w){"use strict";var loadCSS=function(href,before,media){function ready(cb){return doc.body?cb():void setTimeout(function(){ready(cb)})}function loadCB(){ss.addEventListener&&ss.removeEventListener("load",loadCB),ss.media=media||"all"}var ref,doc=w.document,ss=doc.createElement("link");if(before)ref=before;else{var refs=(doc.body||doc.getElementsByTagName("head")[0]).childNodes;ref=refs[refs.length-1]}var sheets=doc.styleSheets;ss.rel="stylesheet",ss.href=href,ss.media="only x",ready(function(){ref.parentNode.insertBefore(ss,before?ref:ref.nextSibling)});var onloadcssdefined=function(cb){for(var resolvedHref=ss.href,i=sheets.length;i--;)if(sheets[i].href===resolvedHref)return cb();setTimeout(function(){onloadcssdefined(cb)})};return ss.addEventListener&&ss.addEventListener("load",loadCB),ss.onloadcssdefined=onloadcssdefined,onloadcssdefined(loadCB),ss};"undefined"!=typeof exports?exports.loadCSS=loadCSS:w.loadCSS=loadCSS}("undefined"!=typeof global?global:this),function(w){if(w.loadCSS){var rp=loadCSS.relpreload={};if(rp.support=function(){try{return w.document.createElement("link").relList.supports("preload")}catch(e){return!1}},rp.poly=function(){for(var links=w.document.getElementsByTagName("link"),i=0;i<links.length;i++){var link=links[i];"preload"===link.rel&&"style"===link.getAttribute("as")&&(w.loadCSS(link.href,link),link.rel=null)}},!rp.support()){rp.poly();var run=w.setInterval(rp.poly,300);w.addEventListener&&w.addEventListener("load",function(){w.clearInterval(run)}),w.attachEvent&&w.attachEvent("onload",function(){w.clearInterval(run)})}}}(this);</script>
+			// Get critical css file
+			$critical = ee()->TMPL->fetch_param('critical') ? ee()->TMPL->fetch_param('critical') : FALSE;
 
-<?php
-			$buffer = ob_get_contents();
-			ob_end_clean();
-
-			$this->return_data = $buffer;
-
-			$file = ee()->TMPL->fetch_param('file') ? ee()->TMPL->fetch_param('file') : FALSE;
-
-			if ($file && file_exists($_SERVER['DOCUMENT_ROOT'].$file))
+			// Create array of stylesheets
+			$styles = ee()->TMPL->fetch_param('styles') ? ee()->TMPL->fetch_param('styles') : FALSE;
+			if (stristr($styles, "|") !== FALSE)
 			{
-				$time = filemtime($_SERVER['DOCUMENT_ROOT'].$file);
-				if(!isset($_COOKIE["cssEmbedded"]) || $_COOKIE["cssEmbedded"] < $time)
-				{
-					setcookie("cssEmbedded", time(), time()+60*60*24*365, "/");
 
-					$return = file_get_contents($_SERVER['DOCUMENT_ROOT'].$file);
+				$styles = explode("|", $styles);
 
-					// Remove any source map comments, i.e. /*# sourceMappingURL=critical.css.map */
-					$return = preg_replace("(\n\/\*\#.*\*\/)", "", $return);
+			}else
+			{
 
-					$this->return_data = "<style>" . $return . "</style>" . $buffer;
-				}
+				$styles = array($styles);
+
 			}
+
+			if ($critical && file_exists($_SERVER['DOCUMENT_ROOT'].$critical) && ($criticalTime = filemtime($_SERVER['DOCUMENT_ROOT'].$critical)) !== FALSE && (!isset($_COOKIE["cssEmbedded"]) || $_COOKIE["cssEmbedded"] < $criticalTime))
+			{
+
+				// Set cookie to use cached stylesheets
+				setcookie("cssEmbedded", time(), time()+60*60*24*365, "/");
+
+				// Get contents of critical css file
+				$criticalContents = file_get_contents($_SERVER['DOCUMENT_ROOT'].$critical);
+
+				// Remove any source map comments, i.e. /*# sourceMappingURL=critical.css.map */
+				$criticalContents = preg_replace("(\n\/\*\#.*\*\/)", "", $criticalContents);
+
+				// Start by embedding contents of critical css file
+				$this->return_data = "<style>" . $criticalContents . "</style>";
+
+				// Create preload `<link>` elements
+				foreach($styles as $stylesheet) {
+					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
+					{
+						$this->return_data .= '<link href="'.$stylesheet.'?'.$styleTime.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
+					}
+				}
+
+				// Create `<noscript>` fallbacks
+				$this->return_data .= '<noscript>';
+				foreach($styles as $stylesheet) {
+					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
+					{
+						$this->return_data .= '<link href="'.$stylesheet.'?'.$styleTime.'" rel="stylesheet" />';
+					}
+				}
+				$this->return_data .= '</noscript>';
+
+				// Add loadCSS function as preload fallback
+				$this->return_data .= $this->loadCSS;
+
+			}else
+			{
+
+				$this->return_data = "";
+				// Create standard `<link>` elements since stylesheets are cached
+				foreach($styles as $stylesheet) {
+					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
+					{
+						$this->return_data .= '<link href="'.$stylesheet.'?'.$styleTime.'" rel="stylesheet" />';
+					}
+				}
+
+			}
+
 		}
+
 	}
-	// END
 
 }
-
 
 /* End of file pi.rd_critical_css.php */
 /* Location: ./system/user/addons/rd_critical_css/pi.rd_critical_css.php */

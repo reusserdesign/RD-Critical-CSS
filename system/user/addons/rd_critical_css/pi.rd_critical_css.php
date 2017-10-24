@@ -24,18 +24,17 @@ class Rd_critical_css
 			// Get critical css file
 			$critical = ee()->TMPL->fetch_param('critical') ? ee()->TMPL->fetch_param('critical') : FALSE;
 
+			// Get Google Fonts file
+			$google = ee()->TMPL->fetch_param('google-fonts') ? ee()->TMPL->fetch_param('google-fonts') : FALSE;
+
 			// Create array of stylesheets
 			$styles = ee()->TMPL->fetch_param('styles') ? ee()->TMPL->fetch_param('styles') : FALSE;
 			if (stristr($styles, "|") !== FALSE)
 			{
-
 				$styles = explode("|", $styles);
-
 			}else
 			{
-
 				$styles = array($styles);
-
 			}
 
 			if ($critical && file_exists($_SERVER['DOCUMENT_ROOT'].$critical) && ($criticalTime = filemtime($_SERVER['DOCUMENT_ROOT'].$critical)) !== FALSE && (!isset($_COOKIE["cssEmbedded"]) || $_COOKIE["cssEmbedded"] < $criticalTime))
@@ -50,10 +49,21 @@ class Rd_critical_css
 				// Remove any source map comments, i.e. /*# sourceMappingURL=critical.css.map */
 				$criticalContents = preg_replace("(\n\/\*\#.*\*\/)", "", $criticalContents);
 
-				// Start by embedding contents of critical css file
-				$this->return_data = "<style>" . $criticalContents . "</style>";
+				$this->return_data = "<style>";
+
+				// Embed Google Fonts if available
+				if($google)
+				{
+					$this->return_data .= file_get_contents($google);
+				}
+
+				// Embed contents of critical css file
+				$this->return_data .= $criticalContents;
+
+				$this->return_data .= "</style>";
 
 				// Create preload `<link>` elements
+				$this->return_data .= '<link href="'.$google.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
 				foreach($styles as $stylesheet) {
 					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
 					{
@@ -63,6 +73,7 @@ class Rd_critical_css
 
 				// Create `<noscript>` fallbacks
 				$this->return_data .= '<noscript>';
+				$this->return_data .= '<link href="'.$google.'" rel="stylesheet" />';
 				foreach($styles as $stylesheet) {
 					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
 					{
@@ -78,6 +89,12 @@ class Rd_critical_css
 			{
 
 				$this->return_data = "";
+
+				if($google)
+				{
+					$this->return_data .= "<link href='".$google."' rel='stylesheet' />";
+				}
+
 				// Create standard `<link>` elements since stylesheets are cached
 				foreach($styles as $stylesheet) {
 					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)

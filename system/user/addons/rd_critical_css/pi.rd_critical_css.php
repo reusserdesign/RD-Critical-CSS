@@ -63,8 +63,12 @@ class Rd_critical_css
 				$this->return_data .= "</style>";
 
 				// Create preload `<link>` elements
-				$this->return_data .= '<link href="'.$google.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
-				foreach($styles as $stylesheet) {
+				if($google)
+				{
+					$this->return_data .= '<link href="'.$google.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
+				}
+				foreach($styles as $stylesheet)
+				{
 					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
 					{
 						$this->return_data .= '<link href="'.$stylesheet.'?'.$styleTime.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
@@ -73,8 +77,12 @@ class Rd_critical_css
 
 				// Create `<noscript>` fallbacks
 				$this->return_data .= '<noscript>';
-				$this->return_data .= '<link href="'.$google.'" rel="stylesheet" />';
-				foreach($styles as $stylesheet) {
+				if($google)
+				{
+					$this->return_data .= '<link href="'.$google.'" rel="stylesheet" />';
+				}
+				foreach($styles as $stylesheet)
+				{
 					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
 					{
 						$this->return_data .= '<link href="'.$stylesheet.'?'.$styleTime.'" rel="stylesheet" />';
@@ -96,7 +104,8 @@ class Rd_critical_css
 				}
 
 				// Create standard `<link>` elements since stylesheets are cached
-				foreach($styles as $stylesheet) {
+				foreach($styles as $stylesheet)
+				{
 					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
 					{
 						$this->return_data .= '<link href="'.$stylesheet.'?'.$styleTime.'" rel="stylesheet" />';

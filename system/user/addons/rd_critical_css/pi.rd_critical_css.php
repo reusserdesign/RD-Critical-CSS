@@ -26,7 +26,7 @@ class Rd_critical_css
 
 			// Get external font file(s)
 			$externals = ee()->TMPL->fetch_param('external-fonts') ? ee()->TMPL->fetch_param('external-fonts') : FALSE;
-			if (stristr($external, "|") !== FALSE)
+			if (stristr($externals, "|") !== FALSE)
 			{
 				$externals = explode("|", $externals);
 			}else

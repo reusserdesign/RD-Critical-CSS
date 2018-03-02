@@ -11,7 +11,7 @@
 
 class Rd_critical_css
 {
-	public $loadCSS = '<script>!function(w){"use strict";var loadCSS=function(href,before,media){function ready(cb){return doc.body?cb():void setTimeout(function(){ready(cb)})}function loadCB(){ss.addEventListener&&ss.removeEventListener("load",loadCB),ss.media=media||"all"}var ref,doc=w.document,ss=doc.createElement("link");if(before)ref=before;else{var refs=(doc.body||doc.getElementsByTagName("head")[0]).childNodes;ref=refs[refs.length-1]}var sheets=doc.styleSheets;ss.rel="stylesheet",ss.href=href,ss.media="only x",ready(function(){ref.parentNode.insertBefore(ss,before?ref:ref.nextSibling)});var onloadcssdefined=function(cb){for(var resolvedHref=ss.href,i=sheets.length;i--;)if(sheets[i].href===resolvedHref)return cb();setTimeout(function(){onloadcssdefined(cb)})};return ss.addEventListener&&ss.addEventListener("load",loadCB),ss.onloadcssdefined=onloadcssdefined,onloadcssdefined(loadCB),ss};"undefined"!=typeof exports?exports.loadCSS=loadCSS:w.loadCSS=loadCSS}("undefined"!=typeof global?global:this),function(w){if(w.loadCSS){var rp=loadCSS.relpreload={};if(rp.support=function(){try{return w.document.createElement("link").relList.supports("preload")}catch(e){return!1}},rp.poly=function(){for(var links=w.document.getElementsByTagName("link"),i=0;i<links.length;i++){var link=links[i];"preload"===link.rel&&"style"===link.getAttribute("as")&&(w.loadCSS(link.href,link),link.rel=null)}},!rp.support()){rp.poly();var run=w.setInterval(rp.poly,300);w.addEventListener&&w.addEventListener("load",function(){w.clearInterval(run)}),w.attachEvent&&w.attachEvent("onload",function(){w.clearInterval(run)})}}}(this);</script>';
+	public $loadCSS = '<script>!function(a){"use strict";var b=function(b,c,d){function e(a){return h.body?a():void setTimeout(function(){e(a)})}function f(){i.addEventListener&&i.removeEventListener("load",f),i.media=d||"all"}var g,h=a.document,i=h.createElement("link");if(c)g=c;else{var j=(h.body||h.getElementsByTagName("head")[0]).childNodes;g=j[j.length-1]}var k=h.styleSheets;i.rel="stylesheet",i.href=b,i.media="only x",e(function(){g.parentNode.insertBefore(i,c?g:g.nextSibling)});var l=function(a){for(var b=i.href,c=k.length;c--;)if(k[c].href===b)return a();setTimeout(function(){l(a)})};return i.addEventListener&&i.addEventListener("load",f),i.onloadcssdefined=l,l(f),i};"undefined"!=typeof exports?exports.loadCSS=b:a.loadCSS=b}("undefined"!=typeof global?global:this);!function(a){if(a.loadCSS){var b=loadCSS.relpreload={};if(b.support=function(){try{return a.document.createElement("link").relList.supports("preload")}catch(b){return!1}},b.poly=function(){for(var b=a.document.getElementsByTagName("link"),c=0;c<b.length;c++){var d=b[c];"preload"===d.rel&&"style"===d.getAttribute("as")&&(a.loadCSS(d.href,d,d.getAttribute("media")),d.rel=null)}},!b.support()){b.poly();var c=a.setInterval(b.poly,300);a.addEventListener&&a.addEventListener("load",function(){b.poly(),a.clearInterval(c)}),a.attachEvent&&a.attachEvent("onload",function(){a.clearInterval(c)})}}}(this);</script>';
 
 	public $return_data  = "";
 
@@ -24,8 +24,15 @@ class Rd_critical_css
 			// Get critical css file
 			$critical = ee()->TMPL->fetch_param('critical') ? ee()->TMPL->fetch_param('critical') : FALSE;
 
-			// Get Google Fonts file
-			$google = ee()->TMPL->fetch_param('google-fonts') ? ee()->TMPL->fetch_param('google-fonts') : FALSE;
+			// Get external font file(s)
+			$externals = ee()->TMPL->fetch_param('external-fonts') ? ee()->TMPL->fetch_param('external-fonts') : FALSE;
+			if (stristr($external, "|") !== FALSE)
+			{
+				$externals = explode("|", $externals);
+			}else
+			{
+				$externals = array($externals);
+			}
 
 			// Create array of stylesheets
 			$styles = ee()->TMPL->fetch_param('styles') ? ee()->TMPL->fetch_param('styles') : FALSE;
@@ -51,10 +58,10 @@ class Rd_critical_css
 
 				$this->return_data = "<style>";
 
-				// Embed Google Fonts if available
-				if($google)
+				// Embed external fonts if available
+				foreach($externals as $external)
 				{
-					$this->return_data .= file_get_contents($google);
+					$this->return_data .= file_get_contents($external);
 				}
 
 				// Embed contents of critical css file
@@ -63,9 +70,9 @@ class Rd_critical_css
 				$this->return_data .= "</style>";
 
 				// Create preload `<link>` elements
-				if($google)
+				foreach($externals as $external)
 				{
-					$this->return_data .= '<link href="'.$google.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
+					$this->return_data .= '<link href="'.$external.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
 				}
 				foreach($styles as $stylesheet)
 				{
@@ -77,9 +84,9 @@ class Rd_critical_css
 
 				// Create `<noscript>` fallbacks
 				$this->return_data .= '<noscript>';
-				if($google)
+				foreach($externals as $external)
 				{
-					$this->return_data .= '<link href="'.$google.'" rel="stylesheet" />';
+					$this->return_data .= '<link href="'.$external.'" rel="stylesheet" />';
 				}
 				foreach($styles as $stylesheet)
 				{
@@ -96,14 +103,14 @@ class Rd_critical_css
 			}else
 			{
 
+				// Create standard `<link>` elements since stylesheets are cached
 				$this->return_data = "";
 
-				if($google)
+				foreach($externals as $external)
 				{
-					$this->return_data .= "<link href='".$google."' rel='stylesheet' />";
+					$this->return_data .= "<link href='".$external."' rel='stylesheet' />";
 				}
 
-				// Create standard `<link>` elements since stylesheets are cached
 				foreach($styles as $stylesheet)
 				{
 					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)

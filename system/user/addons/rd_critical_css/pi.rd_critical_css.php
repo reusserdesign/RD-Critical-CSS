@@ -23,20 +23,32 @@ class Rd_critical_css
 
 			// Get critical css file
 			$critical = ee()->TMPL->fetch_param('critical') ? ee()->TMPL->fetch_param('critical') : FALSE;
+			if(!$critical)
+			{
+				$this->return_data = 'Critical CSS file required!';
+				return;
+			}
 
 			// Get external font file(s)
 			$externals = ee()->TMPL->fetch_param('external-fonts') ? ee()->TMPL->fetch_param('external-fonts') : FALSE;
-			if (stristr($externals, "|") !== FALSE)
+			if($externals)
 			{
-				$externals = explode("|", $externals);
-			}else
-			{
-				$externals = array($externals);
+				if(stristr($externals, "|") !== FALSE)
+				{
+					$externals = explode("|", $externals);
+				}else
+				{
+					$externals = array($externals);
+				}
 			}
 
 			// Create array of stylesheets
 			$styles = ee()->TMPL->fetch_param('styles') ? ee()->TMPL->fetch_param('styles') : FALSE;
-			if (stristr($styles, "|") !== FALSE)
+			if(!$styles){
+				$this->return_data = 'Stylesheet file required!';
+				return;
+			}
+			if(stristr($styles, "|") !== FALSE)
 			{
 				$styles = explode("|", $styles);
 			}else
@@ -44,7 +56,7 @@ class Rd_critical_css
 				$styles = array($styles);
 			}
 
-			if ($critical && file_exists($_SERVER['DOCUMENT_ROOT'].$critical) && ($criticalTime = filemtime($_SERVER['DOCUMENT_ROOT'].$critical)) !== FALSE && (!isset($_COOKIE["cssEmbedded"]) || $_COOKIE["cssEmbedded"] < $criticalTime))
+			if($critical && file_exists($_SERVER['DOCUMENT_ROOT'].$critical) && ($criticalTime = filemtime($_SERVER['DOCUMENT_ROOT'].$critical)) !== FALSE && (!isset($_COOKIE["cssEmbedded"]) || $_COOKIE["cssEmbedded"] < $criticalTime))
 			{
 
 				// Set cookie to use cached stylesheets
@@ -59,9 +71,12 @@ class Rd_critical_css
 				$this->return_data = "<style>";
 
 				// Embed external fonts if available
-				foreach($externals as $external)
+				if($externals != false)
 				{
-					$this->return_data .= file_get_contents($external);
+					foreach($externals as $external)
+					{
+						$this->return_data .= file_get_contents($external);
+					}
 				}
 
 				// Embed contents of critical css file
@@ -70,9 +85,12 @@ class Rd_critical_css
 				$this->return_data .= "</style>";
 
 				// Create preload `<link>` elements
-				foreach($externals as $external)
+				if($externals != false)
 				{
-					$this->return_data .= '<link href="'.$external.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
+					foreach($externals as $external)
+					{
+						$this->return_data .= '<link href="'.$external.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
+					}
 				}
 				foreach($styles as $stylesheet)
 				{
@@ -84,9 +102,12 @@ class Rd_critical_css
 
 				// Create `<noscript>` fallbacks
 				$this->return_data .= '<noscript>';
-				foreach($externals as $external)
+				if($externals != false)
 				{
-					$this->return_data .= '<link href="'.$external.'" rel="stylesheet" />';
+					foreach($externals as $external)
+					{
+						$this->return_data .= '<link href="'.$external.'" rel="stylesheet" />';
+					}
 				}
 				foreach($styles as $stylesheet)
 				{
@@ -106,9 +127,12 @@ class Rd_critical_css
 				// Create standard `<link>` elements since stylesheets are cached
 				$this->return_data = "";
 
-				foreach($externals as $external)
+				if($externals != false)
 				{
-					$this->return_data .= "<link href='".$external."' rel='stylesheet' />";
+					foreach($externals as $external)
+					{
+						$this->return_data .= "<link href='".$external."' rel='stylesheet' />";
+					}
 				}
 
 				foreach($styles as $stylesheet)

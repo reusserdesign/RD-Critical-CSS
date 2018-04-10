@@ -31,16 +31,6 @@ class Rd_critical_css
 
 			// Get external font file(s)
 			$externals = ee()->TMPL->fetch_param('external_fonts') ? ee()->TMPL->fetch_param('external_fonts') : FALSE;
-			if($externals)
-			{
-				if(stristr($externals, "|") !== FALSE)
-				{
-					$externals = explode("|", $externals);
-				}else
-				{
-					$externals = array($externals);
-				}
-			}
 
 			// Create array of stylesheets
 			$styles = ee()->TMPL->fetch_param('styles') ? ee()->TMPL->fetch_param('styles') : FALSE;
@@ -73,10 +63,7 @@ class Rd_critical_css
 				// Embed external fonts if available
 				if($externals != false)
 				{
-					foreach($externals as $external)
-					{
-						$this->return_data .= file_get_contents($external);
-					}
+					$this->return_data .= file_get_contents($externals);
 				}
 
 				// Embed contents of critical css file
@@ -87,10 +74,7 @@ class Rd_critical_css
 				// Create preload `<link>` elements
 				if($externals != false)
 				{
-					foreach($externals as $external)
-					{
-						$this->return_data .= '<link href="'.$external.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
-					}
+					$this->return_data .= '<link href="'.$externals.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
 				}
 				foreach($styles as $stylesheet)
 				{
@@ -104,10 +88,7 @@ class Rd_critical_css
 				$this->return_data .= '<noscript>';
 				if($externals != false)
 				{
-					foreach($externals as $external)
-					{
-						$this->return_data .= '<link href="'.$external.'" rel="stylesheet" />';
-					}
+					$this->return_data .= '<link href="'.$externals.'" rel="stylesheet" />';
 				}
 				foreach($styles as $stylesheet)
 				{
@@ -129,10 +110,7 @@ class Rd_critical_css
 
 				if($externals != false)
 				{
-					foreach($externals as $external)
-					{
-						$this->return_data .= "<link href='".$external."' rel='stylesheet' />";
-					}
+					$this->return_data .= "<link href='".$externals."' rel='stylesheet' />";
 				}
 
 				foreach($styles as $stylesheet)

@@ -30,7 +30,7 @@ class Rd_critical_css
 			}
 
 			// Get external font file(s)
-			$externals = ee()->TMPL->fetch_param('external-fonts') ? ee()->TMPL->fetch_param('external-fonts') : FALSE;
+			$externals = ee()->TMPL->fetch_param('external_fonts') ? ee()->TMPL->fetch_param('external_fonts') : FALSE;
 			if($externals)
 			{
 				if(stristr($externals, "|") !== FALSE)

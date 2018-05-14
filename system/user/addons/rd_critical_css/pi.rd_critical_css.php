@@ -21,6 +21,8 @@ class Rd_critical_css
 		if (version_compare(APP_VER, '3', '>='))
 		{
 
+			$tempPath = rtrim(FCPATH, "/");
+
 			// Get critical css file
 			$critical = ee()->TMPL->fetch_param('critical') ? ee()->TMPL->fetch_param('critical') : FALSE;
 			if(!$critical)
@@ -46,14 +48,14 @@ class Rd_critical_css
 				$styles = array($styles);
 			}
 
-			if($critical && file_exists($_SERVER['DOCUMENT_ROOT'].$critical) && ($criticalTime = filemtime($_SERVER['DOCUMENT_ROOT'].$critical)) !== FALSE && (!isset($_COOKIE["cssEmbedded"]) || $_COOKIE["cssEmbedded"] < $criticalTime))
+			if($critical && file_exists($tempPath.$critical) && ($criticalTime = filemtime($tempPath.$critical)) !== FALSE && (!isset($_COOKIE["cssEmbedded"]) || $_COOKIE["cssEmbedded"] < $criticalTime))
 			{
 
 				// Set cookie to use cached stylesheets
 				setcookie("cssEmbedded", time(), time()+60*60*24*365, "/");
 
 				// Get contents of critical css file
-				$criticalContents = file_get_contents($_SERVER['DOCUMENT_ROOT'].$critical);
+				$criticalContents = file_get_contents($tempPath.$critical);
 
 				// Remove any source map comments, i.e. /*# sourceMappingURL=critical.css.map */
 				$criticalContents = preg_replace("(\n\/\*\#.*\*\/)", "", $criticalContents);
@@ -78,7 +80,7 @@ class Rd_critical_css
 				}
 				foreach($styles as $stylesheet)
 				{
-					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
+					if(file_exists($tempPath.$stylesheet) && ($styleTime = filemtime($tempPath.$stylesheet)) !== FALSE)
 					{
 						$this->return_data .= '<link href="'.$stylesheet.'?'.$styleTime.'" as="style" onload="this.rel=\'stylesheet\'" rel="preload" />';
 					}
@@ -92,7 +94,7 @@ class Rd_critical_css
 				}
 				foreach($styles as $stylesheet)
 				{
-					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
+					if(file_exists($tempPath.$stylesheet) && ($styleTime = filemtime($tempPath.$stylesheet)) !== FALSE)
 					{
 						$this->return_data .= '<link href="'.$stylesheet.'?'.$styleTime.'" rel="stylesheet" />';
 					}
@@ -115,7 +117,7 @@ class Rd_critical_css
 
 				foreach($styles as $stylesheet)
 				{
-					if(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet) && ($styleTime = filemtime($_SERVER['DOCUMENT_ROOT'].$stylesheet)) !== FALSE)
+					if(file_exists($tempPath.$stylesheet) && ($styleTime = filemtime($tempPath.$stylesheet)) !== FALSE)
 					{
 						$this->return_data .= '<link href="'.$stylesheet.'?'.$styleTime.'" rel="stylesheet" />';
 					}

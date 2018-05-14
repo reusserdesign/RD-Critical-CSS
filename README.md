@@ -1,6 +1,6 @@
 # RD Critical CSS
 
-![supports ExpressionEngine 3 and higher](https://img.shields.io/badge/ExpressionEngine-3%2B-3784B0.svg)
+![supports ExpressionEngine 3](https://img.shields.io/badge/ExpressionEngine-3-3784B0.svg) ![supports ExpressionEngine 4](https://img.shields.io/badge/ExpressionEngine-4-3784B0.svg)
 
 ExpressionEngine 3 and 4 plugin for inlining critical css files and providing polyfill support for rel=preload
 
